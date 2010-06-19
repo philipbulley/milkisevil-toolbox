@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>NewProjectTemplate</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="Author" content="&copy;2010 Philip Bulley www.milkisevil.com" />
+		
+		<style type="text/css">
+			*{
+				margin : 0px;
+				padding : 0px;
+			}
+			
+			html
+			{
+				height : 100%;
+			}
+			
+			body
+			{
+				background : #ffffff;
+				height : 100%;
+			}
+			
+			p
+			{
+				padding: 10px 0;
+			}
+			
+			#page{
+				margin: 0px auto;
+				height: 100%;
+			}
+			
+			embed, object
+			{
+				display: block;
+			}
+			
+			#flashcontainer
+			{
+				width:100%;
+				height:100%;	
+				min-width: 1220px; 
+				min-height: 595px;
+			}
+			
+			#intro
+			{
+				overflow: hidden; 
+				text-indent: -9000px;
+				display: none;
+			}
+			
+			#getflashplayer
+			{
+				font-size: 10px;
+				font-family: Trebucket MS, Verdana, Arial, Helvetica;
+				color: #666666;
+				width: 300px;
+				padding: 50px 50px;
+			}
+			
+			#getflashplayer a
+			{
+				font-weight: bold;
+				color: #b774c5;
+			}
+			
+			a:focus, object:focus 
+			{ 
+				outline: none; -moz-outline-style: none;
+			}
+		</style>
+		
+		<script src="http://static.ak.facebook.com/js/api_lib/v0.4/FeatureLoader.js.php" type="text/javascript"></script>
+		<script type="text/javascript" src="js/milkisevil/facebook.js"></script>
+		<script type="text/javascript" src="js/swfobject.js"></script>
+		<script type="text/javascript">
+			
+			// Facebook init
+			var API_KEY = 'YOUR_API_KEY';
+			FB.init( API_KEY, 'xd_receiver.htm' );
+			
+			// Flashvars
+			var flashvars = {};			
+			
+			var params = {};
+			params.menu = "false";
+			params.quality = "high";
+			params.scale = "noscale";
+			params.salign = "tl";
+			params.bgcolor = "#000000";
+			params.allowfullscreen = "true";
+			params.allowscriptaccess = "sameDomain";
+			params.wmode = 'transparent';	// wmode must be transparent or else ajax windows will not show up over swf
+			
+			var attributes = {};
+			attributes.id = "swf";
+			attributes.align = "left";			
+			
+			swfobject.embedSWF("your-flash-file.swf", "swf", "760", "690", "10.0.0", "expressInstall.swf", flashvars, params, attributes);
+			
+			
+			function showTerms()
+			{
+				window.open("/homepage/terms", "Terms & Conditions", "width=310,height=600,scrollbars=yes");			
+			}
+		</script>
+
+		
+	</head>
+	<body>
+		<div id="page">
+
+			<div id="intro">
+				<h1>NewProjectTemplate</h1>
+				<p>Add description here...</p>
+				
+				
+			</div>
+			<div id="flashcontainer">
+				<div id="swf">
+					<div id="getflashplayer">				
+						<p><a href="http://www.adobe.com/go/getflashplayer">Please install Adobe Flash Player.</a></p>
+						
+						<p>This website requires JavaScript to be enabled and the latest version of Adobe Flash Player, you can download it for free at <a href="http://www.adobe.com/go/getflashplayer">http://www.adobe.com/go/getflashplayer</a></p>
+						<br/><br/>
+						<a href="http://www.adobe.com/go/getflashplayer">
+							<img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" border="0" />
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
