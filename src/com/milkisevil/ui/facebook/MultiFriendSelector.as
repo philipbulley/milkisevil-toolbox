@@ -2,8 +2,8 @@ package com.milkisevil.ui.facebook
 {
 	import fl.containers.ScrollPane;
 
-	import com.facebook.Facebook;
-	import com.facebook.commands.friends.GetFriends;
+	import com.facebook.graph.FacebookDesktop;
+	//import com.facebook.commands.friends.GetFriends;
 	import com.facebook.commands.users.GetInfo;
 	import com.facebook.data.friends.GetFriendsData;
 	import com.facebook.data.users.FacebookUser;
@@ -26,12 +26,18 @@ package com.milkisevil.ui.facebook
 	 */
 	public class MultiFriendSelector extends BaseUI 
 	{
-		public static const NAME:String 			= 'MultiFriendSelector';		public static const STATUS_EVENT:String 	= NAME + '.STATUS_EVENT';		public static const CLOSE:String 			= NAME + '.CLOSE';		public static const SUBMIT:String 			= NAME + '.SUBMIT';
-				private static const FRIEND_BUTTON_SPACING_X:Number = 6;		private static const FRIEND_BUTTON_SPACING_Y:Number = 6;
+		public static const NAME:String 			= 'MultiFriendSelector';
+		public static const STATUS_EVENT:String 	= NAME + '.STATUS_EVENT';
+		public static const CLOSE:String 			= NAME + '.CLOSE';
+		public static const SUBMIT:String 			= NAME + '.SUBMIT';
+		
+		private static const FRIEND_BUTTON_SPACING_X:Number = 6;
+		private static const FRIEND_BUTTON_SPACING_Y:Number = 6;
 		private static const SCROLL_BAR_WIDTH:Number = 15;
-				private var child:MultiFriendSelectorAsset;		private var friendButtonList:Array = [];
+		
+		private var child:MultiFriendSelectorAsset;
+		private var friendButtonList:Array = [];
 		private var scrollPane:ScrollPane;
-		private var facebook:Facebook;
 		private var users:Sprite;
 		private var columns:int;
 		private var searchField:FormInputTextField;
@@ -43,11 +49,10 @@ package com.milkisevil.ui.facebook
 		private var alertText:AlertText;
 		public var allowDrag:Boolean = true;
 
-		public function MultiFriendSelector( facebook:Facebook, maxFriendsSelect:int = 16, simultaneousImageDownloads:int = 5 )
+		public function MultiFriendSelector( maxFriendsSelect:int = 16, simultaneousImageDownloads:int = 5 )
 		{
 			super( );
 			
-			this.facebook = facebook;
 			this.maxFriendsSelect = (maxFriendsSelect == 0) ? 1 : maxFriendsSelect;		// Don't allow maxFriendsSelect to be 0
 			this.simultaneousImageDownloads = simultaneousImageDownloads;
 			
@@ -66,7 +71,9 @@ package com.milkisevil.ui.facebook
 			child.content.heading2.autoSize = TextFieldAutoSize.LEFT;
 			child.content.heading2.text = 'Add ' + ((maxFriendsSelect == 1) ? '' : 'up to ') + maxFriendsSelect + ' of your friends by clicking on ' + ((maxFriendsSelect == 1) ? 'a picture ' : 'their pictures ') + 'below';
 			
-			initSearchField();			initButtons();			initOptionBar();
+			initSearchField();
+			initButtons();
+			initOptionBar();
 			showLoading();
 			
 			addChild( child );
@@ -77,6 +84,8 @@ package com.milkisevil.ui.facebook
 			super.addedToStage( event );
 			
 			initTitleBar();
+			this.removeEventListener( Event.ADDED_TO_STAGE, this.addedToStage);
+					
 		}
 
 		private function initOptionBar():void
@@ -84,8 +93,10 @@ package com.milkisevil.ui.facebook
 			allButton = new SwitchButton( 'All' );
 			selectedButton = new SwitchButton( 'Selected (0)' );
 			
-			var switchButtonGroup:SwitchButtonGroup = new SwitchButtonGroup( );			switchButtonGroup.addButton( allButton );
-			switchButtonGroup.addButton( selectedButton );			allButton.selected = true;
+			var switchButtonGroup:SwitchButtonGroup = new SwitchButtonGroup( );
+			switchButtonGroup.addButton( allButton );
+			switchButtonGroup.addButton( selectedButton );
+			allButton.selected = true;
 			switchButtonGroup.render();
 			switchButtonGroup.x = child.content.optionBar.background.width - (switchButtonGroup.width + 10);
 			switchButtonGroup.y = (child.content.optionBar.background.height * .5) - (switchButtonGroup.height * .5);
@@ -98,7 +109,8 @@ package com.milkisevil.ui.facebook
 			alertText.hide( {duration:0} );
 			alertText.x = 10;
 			alertText.y = 5;
-			child.content.optionBar.addChild( alertText );		}
+			child.content.optionBar.addChild( alertText );
+		}
 
 		private function switchButtonGroupStatus(event:StatusEventEnhanced):void
 		{
@@ -126,9 +138,11 @@ package com.milkisevil.ui.facebook
 		private function initSearchField():void
 		{
 			searchField = new FormInputTextField( );
-			searchField.lableText = 'Find friends';			searchField.defaultValue = 'Start typing a name';
+			searchField.lableText = 'Find friends';
+			searchField.defaultValue = 'Start typing a name';
 			searchField.addEventListener( FormInputTextField.STATUS_EVENT, searchFieldListener );
-			searchField.x = child.content.divider.x;			searchField.y = child.content.divider.y + 15;
+			searchField.x = child.content.divider.x;
+			searchField.y = child.content.divider.y + 15;
 			child.content.addChild( searchField );
 		}
 		
@@ -228,13 +242,17 @@ package com.milkisevil.ui.facebook
 		}
 
 		private function initTitleBar():void
-		{
+		{       TweenMax.killTweensOf(this);
 			child.titleBar.closeButton.mouseChildren = false;
 			child.titleBar.closeButton.buttonMode = true;
-			child.titleBar.closeButton.addEventListener( MouseEvent.CLICK, closeButtonListener );			child.titleBar.closeButton.addEventListener( MouseEvent.ROLL_OVER, closeButtonListener );			child.titleBar.closeButton.addEventListener( MouseEvent.ROLL_OUT, closeButtonListener );
+			child.titleBar.closeButton.addEventListener( MouseEvent.CLICK, closeButtonListener );
+			child.titleBar.closeButton.addEventListener( MouseEvent.ROLL_OVER, closeButtonListener );
+			child.titleBar.closeButton.addEventListener( MouseEvent.ROLL_OUT, closeButtonListener );
 			
-			child.titleBar.favicon.mouseEnabled = false;			child.titleBar.title.mouseEnabled = false;
-			child.titleBar.background.addEventListener( MouseEvent.MOUSE_DOWN, dragListener );			child.titleBar.background.addEventListener( MouseEvent.MOUSE_UP, dragListener );
+			child.titleBar.favicon.mouseEnabled = false;
+			child.titleBar.title.mouseEnabled = false;
+			child.titleBar.background.addEventListener( MouseEvent.MOUSE_DOWN, dragListener );
+			child.titleBar.background.addEventListener( MouseEvent.MOUSE_UP, dragListener );
 			stage.addEventListener( Event.MOUSE_LEAVE, dragListener );
 		}
 		
@@ -276,7 +294,8 @@ package com.milkisevil.ui.facebook
 
 		private function showLoading():void
 		{
-			child.miniSpinner.visible = true;			child.content.visible = false;
+			child.miniSpinner.visible = true;
+			child.content.visible = false;
 		}
 		
 		private function hideLoading():void
@@ -285,45 +304,30 @@ package com.milkisevil.ui.facebook
 			child.content.visible = true;
 		}
 
-		public function getFriends( uids:Array = null ):void
+		public function getFriends():void
 		{
-			if(!uids)
-			{
-				var getFriendsCall:GetFriends = new GetFriends();
-				getFriendsCall.addEventListener( FacebookEvent.COMPLETE, getFriendsCallComplete );
-				facebook.post( getFriendsCall );
-			}
-			else
-			{
-				var getFriendsInfoCall:GetInfo = new GetInfo(uids, [ GetInfoFieldValues.PIC_SQUARE, GetInfoFieldValues.NAME, GetInfoFieldValues.CURRENT_LOCATION ] );
-				getFriendsInfoCall.addEventListener( FacebookEvent.COMPLETE, getFriendsInfoCallComplete );
-				facebook.post( getFriendsInfoCall );
-			}
+			FacebookDesktop.api('/me/friends',getFriendsCallComplete);
+				
 		}
 		
-		private function getFriendsCallComplete(event:FacebookEvent):void
+		private function getFriendsCallComplete(response:Object, fail:Object):void
 		{
-			var data:GetFriendsData = event.data as GetFriendsData;
-			var friends:FacebookUserCollection = data.friends;
-			
-			var friendUIDs:Array = [];
+		
+			var friends:Array  = response as Array;
+			var friendCollection:FacebookUserCollection = new FacebookUserCollection();
 			for(var i:int = 0; i<friends.length; i++)
 			{
-				var friend:FacebookUser = friends.getItemAt( i ) as FacebookUser;
-				friendUIDs.push( friend.uid );
+			        //friends[i].uid = friends[i].id;
+				var friend:FacebookUser = new FacebookUser();
+				friend.uid = friends[i].id; friend.name=friends[i].name;
+				friend.pic_square=FacebookDesktop.getImageUrl(friend.uid,"square");
+				friends[i]=friend;
+				friendCollection.addUser(friend);
 			}
-			
-			getFriends( friendUIDs );
-		}
+		
+			addUsers(friendCollection);
 
-		private function getFriendsInfoCallComplete(event:FacebookEvent):void
-		{
-			//MonsterDebugger.trace( this, event, 0x000000, false, 5 );
-			
-			var data:GetInfoData = event.data as GetInfoData;
-			var userCollection:FacebookUserCollection = data.userCollection;
-			
-			addUsers( userCollection );
+		 	
 		}
 
 		
@@ -332,7 +336,8 @@ package com.milkisevil.ui.facebook
 			var friendsList:Array = [];
 			var facebookUser:FacebookUser;
 			
-			for( var i:int = 0; i < userCollection.length ; i++ )			{
+			for( var i:int = 0; i < userCollection.length ; i++ )
+			{
 				facebookUser = userCollection.getItemAt( i ) as FacebookUser;
 				friendsList.push( facebookUser );
 			}
