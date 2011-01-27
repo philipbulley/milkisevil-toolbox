@@ -1,20 +1,20 @@
 package com.milkisevil.ui.facebook 
 {
 	import fl.containers.ScrollPane;
-
-	import com.facebook.graph.FacebookDesktop;
+    //import org.as3commons.collections.*;
+	import com.facebook.graph.*;
 	//import com.facebook.commands.friends.GetFriends;
-	import com.facebook.commands.users.GetInfo;
-	import com.facebook.data.friends.GetFriendsData;
-	import com.facebook.data.users.FacebookUser;
-	import com.facebook.data.users.FacebookUserCollection;
-	import com.facebook.data.users.GetInfoData;
-	import com.facebook.data.users.GetInfoFieldValues;
-	import com.facebook.events.FacebookEvent;
+	//import com.facebook.commands.users.GetInfo;
+	//import com.facebook.data.friends.GetFriendsData;
+	//import com.facebook.data.users.FacebookUser;
+	//import com.facebook.data.users.FacebookUserCollection;
+	//import com.facebook.data.users.GetInfoData;
+	//import com.facebook.data.users.GetInfoFieldValues;
+	//import com.facebook.events.FacebookEvent;
 	import com.greensock.TweenMax;
 	import com.milkisevil.events.StatusEventEnhanced;
 	import com.milkisevil.ui.BaseUI;
-
+	import org.as3commons.reflect.*;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
@@ -48,24 +48,29 @@ package com.milkisevil.ui.facebook
 		private var allButton:SwitchButton;
 		private var alertText:AlertText;
 		public var allowDrag:Boolean = true;
+		private var fb:Type;
+		private var facebook:Class;
+		private var api:Method;
+		private var getImageUrl:Method;
+		private var fbType:String;
 
-		public function MultiFriendSelector( maxFriendsSelect:int = 16, simultaneousImageDownloads:int = 5 )
+		public function MultiFriendSelector( maxFriendsSelect:int = 16, simultaneousImageDownloads:int = 5, isAir:Boolean = true )
 		{
 			super( );
-			
 			this.maxFriendsSelect = (maxFriendsSelect == 0) ? 1 : maxFriendsSelect;		// Don't allow maxFriendsSelect to be 0
 			this.simultaneousImageDownloads = simultaneousImageDownloads;
-			
+			//choose the appropriate clas depending on whether we are in an Air app or a Flash app
+			fbType = ((isAir) ? "com.facebook.graph.FacebookDesktop" : "com.facebook.graph.Facebook");
+			//get a reference to the appropriate class since the Actionscript Facebook API uses static methods and singletons 
 			
 			child = new MultiFriendSelectorAsset();
 			scrollPane = child.content.scrollPane;
 			
-			var tempFriendButton:FriendButton = new FriendButton( new FacebookUser() );
+			var tempFriendButton:FriendButton = new FriendButton( {name:"",id:""} );
 			columns = Math.floor( (scrollPane.width - FRIEND_BUTTON_SPACING_X - SCROLL_BAR_WIDTH) / (tempFriendButton.width + FRIEND_BUTTON_SPACING_X) );
-			
 			users = new Sprite();
 			scrollPane.source = users;
-			scrollPane.verticalLineScrollSize = tempFriendButton.height * 2;
+			scrollPane.verticalLineScrollSize = tempFriendButton.height * .75;
 			
 			// Set the max friends
 			child.content.heading2.autoSize = TextFieldAutoSize.LEFT;
@@ -85,6 +90,11 @@ package com.milkisevil.ui.facebook
 			
 			initTitleBar();
 			this.removeEventListener( Event.ADDED_TO_STAGE, this.addedToStage);
+			//use the as3comons-reflection-api to find out if we are used by a web or desktop application
+			fb = Type.forName(fbType);
+			api = fb.getMethod('api');
+			getImageUrl = fb.getMethod('getImageUrl');
+			facebook = fb.clazz; //assign the Class to our local facebook variable so we can use it later
 					
 		}
 
@@ -165,7 +175,7 @@ package com.milkisevil.ui.facebook
 			for( var i:int = 0; i < friendButtonList.length ; i++ )
 			{
 				var friendButton:FriendButton = friendButtonList[i] as FriendButton;
-				var facebookUser:FacebookUser = friendButton.facebookUser;
+				var facebookUser:Object = friendButton.facebookUser;
 				if(facebookUser.name.toLowerCase().indexOf( value ) > -1)
 				{
 					friendButton.visible = true;
@@ -306,40 +316,40 @@ package com.milkisevil.ui.facebook
 
 		public function getFriends():void
 		{
-			FacebookDesktop.api('/me/friends',getFriendsCallComplete);
-				
+		   var callBack:Function = this.getFriendsCallComplete
+		   api.invoke(facebook,new Array("/me/friends",callBack));
 		}
 		
 		private function getFriendsCallComplete(response:Object, fail:Object):void
 		{
-		
+
+		    if (response){    
 			var friends:Array  = response as Array;
-			var friendCollection:FacebookUserCollection = new FacebookUserCollection();
+			var friendCollection:Array = new Array();
 			for(var i:int = 0; i<friends.length; i++)
 			{
-			        //friends[i].uid = friends[i].id;
-				var friend:FacebookUser = new FacebookUser();
-				friend.uid = friends[i].id; friend.name=friends[i].name;
-				friend.pic_square=FacebookDesktop.getImageUrl(friend.uid,"square");
-				friends[i]=friend;
-				friendCollection.addUser(friend);
+			   
+				var friend:Object = {uid:friends[i].id, name:friends[i].name, pic_square:getImageUrl.invoke(facebook,new Array(friends[i].id,"square"))};
+				friendCollection.push(friend);
 			}
 		
 			addUsers(friendCollection);
-
+            }
+            else{
+                    trace("could not getFriends "+fail.toString());
+                }
 		 	
 		}
 
 		
-		private function addUsers(userCollection:FacebookUserCollection):void
+		private function addUsers(userCollection:Array):void
 		{
 			var friendsList:Array = [];
-			var facebookUser:FacebookUser;
+			var facebookUser:Object;
 			
 			for( var i:int = 0; i < userCollection.length ; i++ )
 			{
-				facebookUser = userCollection.getItemAt( i ) as FacebookUser;
-				friendsList.push( facebookUser );
+				friendsList.push( userCollection[i] );
 			}
 			
 			friendsList.sortOn( 'name' );
@@ -348,7 +358,7 @@ package com.milkisevil.ui.facebook
 			
 			for( var j:int = 0; j < friendsList.length ; j++ )
 			{
-				facebookUser = friendsList[ j ] as FacebookUser;
+				facebookUser = friendsList[ j ] as Object;
 				var friendButton:FriendButton = new FriendButton( facebookUser );
 				friendButton.addEventListener( FriendButton.STATUS_EVENT, friendButtonStatus );
 				friendButtonList.push( friendButton );
@@ -507,6 +517,7 @@ package com.milkisevil.ui.facebook
 			/*
 			// Large background spacer			
 			var bottomSpacer:Sprite = new Sprite();
+
 			bottomSpacer.addChild( createRectangle(0, 0, scrollPane.width - 15, friendButtonList[friendButtonList.length - 1].y + friendButtonList[friendButtonList.length - 1].height + FRIEND_BUTTON_SPACING_Y, 0xff0000) );
 			users.addChild( bottomSpacer );
 			users.setChildIndex( bottomSpacer, 0 );
@@ -523,7 +534,7 @@ package com.milkisevil.ui.facebook
 		 */
 		private function updateSelected():int
 		{
-			var userCollection:FacebookUserCollection = getSelected();
+			var userCollection:Array = getSelected();
 			
 			selectedButton.label = 'Selected (' + userCollection.length + ')';
 			
@@ -535,18 +546,32 @@ package com.milkisevil.ui.facebook
 		 * 
 		 * @return		All currently selected users
 		 */
-		public function getSelected():FacebookUserCollection
+		private function getSelected():Array
 		{
-			var userCollection:FacebookUserCollection = new FacebookUserCollection();
+			var userCollection:Array = new Array();
 			
 			for( var i:int = 0; i < friendButtonList.length ; i++ )
 			{
 				var friendButton:FriendButton = friendButtonList[i] as FriendButton;
 				
-				if(friendButton.selected) userCollection.addUser( friendButton.facebookUser );
+				if(friendButton.selected) userCollection.push( friendButton.facebookUser );
 			}
 			
 			return userCollection;	
+		}
+		
+		public function getSelectedFriends():Array
+		{
+			var returnable:Array = new Array();
+			
+			for( var i:int = 0; i < friendButtonList.length ; i++ )
+			{
+				var friendButton:FriendButton = friendButtonList[i] as FriendButton;
+				var user:Object = (friendButton.facebookUser as Object);
+				if(friendButton.selected) returnable.push( user );
+			}
+			
+			return returnable;	
 		}
 		
 		public function get title():String
@@ -570,5 +595,8 @@ package com.milkisevil.ui.facebook
 			child.content.heading1.autoSize = TextFieldAutoSize.LEFT;
 			child.content.heading1.text = subtitle;
 		}
+	
 	}
 }
+
+

@@ -2,10 +2,10 @@ package com.milkisevil.ui.facebook
 {
 	import flash.display.MovieClip;
 
-	import com.facebook.data.FacebookLocation;
+	//import com.facebook.data.FacebookLocation;
 
 	import flash.system.LoaderContext;
-	import com.facebook.data.users.FacebookUser;
+	//import com.facebook.data.users.FacebookUser;
 	import com.milkisevil.events.StatusEventEnhanced;
 	import com.milkisevil.ui.BaseUI;
 
@@ -22,17 +22,28 @@ package com.milkisevil.ui.facebook
 	 */
 	public class FriendButton extends BaseUI 
 	{
-		public static const NAME:String						= 'FriendButton';		public static const STATUS_EVENT:String				= NAME + '.STATUS_EVENT';		public static const LOAD_IMAGE_COMPLETE:String		= NAME + '.LOAD_IMAGE_COMPLETE';		public static const LOAD_IMAGE_ERROR:String			= NAME + '.LOAD_IMAGE_ERROR';		public static const SELECT:String					= NAME + '.SELECT';		public static const DESELECT:String					= NAME + '.DESELECT';		
-		private var child:FriendButtonAsset;
-		private var _selected:Boolean;		private var _highlighted:Boolean;
+		public static const NAME:String						= 'FriendButton';
+		public static const STATUS_EVENT:String				= NAME + '.STATUS_EVENT';
+		public static const LOAD_IMAGE_COMPLETE:String		= NAME + '.LOAD_IMAGE_COMPLETE';
+		public static const LOAD_IMAGE_ERROR:String			= NAME + '.LOAD_IMAGE_ERROR';
+		public static const SELECT:String					= NAME + '.SELECT';
+		public static const DESELECT:String					= NAME + '.DESELECT';
 		
-		private static const TITLE_COLOR_NORMAL:String 			= '#000000';		private static const TITLE_COLOR_HIGHLIGHT:String 		= '#000000';		private static const TITLE_COLOR_SELECTED:String 		= '#ffffff';		private static const SUBTITLE_COLOR_NORMAL:String 		= '#666666';
+		private var child:FriendButtonAsset;
+		private var _selected:Boolean;
+		private var _highlighted:Boolean;
+		
+		private static const TITLE_COLOR_NORMAL:String 			= '#000000';
+		private static const TITLE_COLOR_HIGHLIGHT:String 		= '#000000';
+		private static const TITLE_COLOR_SELECTED:String 		= '#ffffff';
+		private static const SUBTITLE_COLOR_NORMAL:String 		= '#666666';
 		private static const SUBTITLE_COLOR_HIGHLIGHT:String 	= '#666666';
 		private static const SUBTITLE_COLOR_SELECTED:String 	= '#c3cddf';
 		
 		private var labelText:String;
 		private var parsedText:String;
-		private var _facebookUser:FacebookUser;		private var _isLoadImageCalled:Boolean;
+		private var _facebookUser:Object;
+		private var _isLoadImageCalled:Boolean;
 		
 
 		/**
@@ -41,14 +52,16 @@ package com.milkisevil.ui.facebook
 		 * 		GetInfoFieldValues.NAME
 		 * 		
 		 */
-		public function FriendButton( facebookUser:FacebookUser )
+		public function FriendButton( facebookUser:Object )
 		{
 			super( );
 			
 			child = new FriendButtonAsset();
 			
 			child.hit.buttonMode = true;
-			child.hit.addEventListener( MouseEvent.ROLL_OVER, rollOver );			child.hit.addEventListener( MouseEvent.ROLL_OUT, rollOut );			child.hit.addEventListener( MouseEvent.CLICK, click );
+			child.hit.addEventListener( MouseEvent.ROLL_OVER, rollOver );
+			child.hit.addEventListener( MouseEvent.ROLL_OUT, rollOut );
+			child.hit.addEventListener( MouseEvent.CLICK, click );
 			
 			addUser( facebookUser );
 			
@@ -73,21 +86,23 @@ package com.milkisevil.ui.facebook
 			selected = (selected) ? false : true;
 		}
 		
-		private function addUser( facebookUser:FacebookUser ):void
+		private function addUser( facebookUser:Object ):void
 		{
 			_facebookUser = facebookUser;
 			
-			//child.label.text = (facebookUser.name) ? facebookUser.name : '';			//child.label.appendText( xxx );		// TODO: Append network
+			//child.label.text = (facebookUser.name) ? facebookUser.name : '';
+			//child.label.appendText( xxx );		// TODO: Append network
 			
 			var subTitle:String = '';
-			var currentLocation:FacebookLocation = facebookUser.current_location;
+			var currentLocation:Object = facebookUser.current_location;
 			if(currentLocation)
 			{
 				if(currentLocation.city) subTitle = currentLocation.city;
 				if(subTitle == '' && currentLocation.country) subTitle = currentLocation.country;
 			}
 			
-			labelText = '<font color="TITLE_COLOR_TAG">' + ((facebookUser.name) ? facebookUser.name : '') + '</font>';			labelText += '<br><font color="SUBTITLE_COLOR_TAG">' + subTitle + '</font>';
+			labelText = '<font color="TITLE_COLOR_TAG">' + ((facebookUser.name) ? facebookUser.name : '') + '</font>';
+			labelText += '<br><font color="SUBTITLE_COLOR_TAG">' + subTitle + '</font>';
 			
 			updateLabel( TITLE_COLOR_NORMAL, SUBTITLE_COLOR_NORMAL );
 		}
@@ -109,7 +124,8 @@ package com.milkisevil.ui.facebook
 			if(imageURL)
 			{
 				var loader:Loader = new Loader();
-				loader.contentLoaderInfo.addEventListener( Event.COMPLETE, loadImageComplete );				loader.contentLoaderInfo.addEventListener( IOErrorEvent.IO_ERROR, loadImageError );
+				loader.contentLoaderInfo.addEventListener( Event.COMPLETE, loadImageComplete );
+				loader.contentLoaderInfo.addEventListener( IOErrorEvent.IO_ERROR, loadImageError );
 				loader.load( new URLRequest( imageURL ), new LoaderContext( true ) );
 			}
 			else
@@ -146,7 +162,8 @@ package com.milkisevil.ui.facebook
 			
 			if(selected)
 			{
-				child.backgroundSelected.visible = true;				child.thumb.frameSelected.visible = true;
+				child.backgroundSelected.visible = true;
+				child.thumb.frameSelected.visible = true;
 				child.thumb.frameNormal.visible = false;
 				updateLabel( TITLE_COLOR_SELECTED, SUBTITLE_COLOR_SELECTED );
 				
@@ -188,7 +205,7 @@ package com.milkisevil.ui.facebook
 			}
 		}
 		
-		public function get facebookUser():FacebookUser
+		public function get facebookUser():Object
 		{
 			return _facebookUser;
 		}
@@ -207,7 +224,8 @@ package com.milkisevil.ui.facebook
 		{
 			super.enabled = value;
 			
-			child.hit.mouseEnabled = value;			child.hit.buttonMode = value;
+			child.hit.mouseEnabled = value;
+			child.hit.buttonMode = value;
 		}
 	}
 }
